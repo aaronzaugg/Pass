@@ -14,9 +14,8 @@ Function New-NewsPassword {
 
     $news = Invoke-WebRequest -UseBasicParsing -Uri https://memeorandum.com/river
     $newnews = $news.content -split '\n'
-    $regex = '(head.*)\s+\('
-    $pool = ($newnews|select-string -AllMatches -pattern $regex | % {$_.Matches} | % {$_.Value} | 
-            % {$_.Replace('head="', '')}) -join ''
+    $regex = 'head="(.*)\s+\('
+    $pool = ($newnews|select-string -AllMatches -pattern $regex | % {$_.Matches} | % {$_.Value}) -join '' #% {$_.Replace('head="', '')}) -join ''
     $poolwords = $pool -split ' '
     $poolcount=$poolwords.Count
     $i=0
