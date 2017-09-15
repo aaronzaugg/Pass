@@ -1,30 +1,53 @@
-$Regex="(.+)\s>"
-$news=Invoke-WebRequest -UseBasicParsing -Uri https://news.google.com
-$bodies = (($news.content |select-string -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}).Replace("title=","")).Replace("'","")
+Function New-NewsPassword {
+    [CmdletBinding()]
 
+    Param(
+        [parameter (Mandatory = $true)]
+        [int] $length = 20,
+        [parameter (Mandatory = $false)]
+        [Alias ('ToClip', 'Clip')]
+        [switch] $ToClipBoard,
+        [parameter (Mandatory=$false)]
+        [Alias ('ShowBad')]
+        [switch] $ShowExclusions
+    )
 
-<#
-53 $news=Invoke-WebRequest -UseBasicParsing -Uri https://memeorandum.com/river
-54 $news
-55 $news.RawContent
-56 Get-History
-57 $newscontent=$news.content
-58 $newscontent
-76 $regex='head="(.+?)(")\s'
-77 $newscontent |select-string -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
-78 $newscontent |select-string -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value} |measure
-81 $heads=$newscontent |select-string -Pattern $regex -AllMatches | % {$_.Matches} | % {$_.Value}
-82 $heads.Substring(15,5)
-83 $heads.Substring(15,3)
-84 $headbits=$heads.Substring(15,3)
-85 $headbits.Count
-86 $headbits |where {$_ -not -like "* *"}
-87 $headbits |where {$_ -notlike "* *"}
-88 $headbits |where {$_ -notlike "* *"} |measure
-89 $length=12
-90 $grabs=4
-91 $headbits=$headbits |where {$_ -notlike "* *"}
-92 $headbits
-93 $headbits[10]
-94 $headbits[10]+$headbits[30]+$headbits[40]+$headbits[280]
-#>
+    $news = Invoke-WebRequest -UseBasicParsing -Uri https://memeorandum.com/river
+    $newnews = $news.content -split '\n'
+    $regex = '(head.*)\s+\('
+    $pool = ($newnews|select-string -AllMatches -pattern $regex | % {$_.Matches} | % {$_.Value} | 
+            % {$_.Replace('head="', '')}) -join ''
+    $poolwords = $pool -split ' '
+    $poolcount=$poolwords.Count
+    $i=0
+    if ($ShowExclusions.IsPresent){
+        foreach ($poolword in $poolwords){
+            if ($poolword -cmatch "['|\.|\(|\)|\||\-|\?|>|<|,|&|:]" )
+            {
+                $i++
+                $l=$poolword.Length
+                Write-Output "$i : $l : $poolword"
+                
+            }
+        }
+    }
+    Write-Verbose "($Poolcount) words before cleaning"
+    $poolwords = $poolwords | where-object {$_ -cnotmatch "['|\.|\(|\)|\||\-|\?|>|<|,|&|:]"} #"['|\.|\(|\)|\||\-|\?|>|<|,|&quot;|&amp;|&lt;|&gt;|:]" Ampersand section matched too much
+    $poolwords = $poolwords|where-Object {$_.Length -gt 3 }
+    $poolcount=$poolwords.Count
+    Write-Verbose "($PoolCount) words after cleaning"
+    $password = ''
+    do {
+        $wordpick = get-random -Maximum ($poolwords.Count - 1)
+        $thisword = $poolwords[$wordpick]
+        $thisword = $thisword.Substring(0, 1).ToUpper() + $thisword.Substring(1)
+        $password += $thisword
+    } while ($password.Length -lt $length)
+    if ($ToClipBoard.IsPresent) {
+        $password |Set-ClipBoard 
+    }
+    else {
+        $password
+    }
+ 
+}
