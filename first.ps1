@@ -38,6 +38,7 @@ Function New-NewsPassword {
     $password = ''
     do {
         $wordpick = get-random -Maximum ($poolwords.Count - 1)
+        Write-Verbose $wordpick
         $thisword = $poolwords[$wordpick]
         $thisword = $thisword.Substring(0, 1).ToUpper() + $thisword.Substring(1)
         $password += $thisword
