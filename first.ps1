@@ -3,7 +3,7 @@ Function New-NewsPassword {
 
     Param(
         [parameter (Mandatory = $true)]
-        [int] $length = 20,
+        [int] $length,
         [parameter (Mandatory = $false)]
         [Alias ('ToClip', 'Clip')]
         [switch] $ToClipBoard,
