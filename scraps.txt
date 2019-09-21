@@ -1,0 +1,9 @@
+ipmo AWSPowerShell
+ipmo AWSLambdaPSCore
+Initialize-AWSDefaultConfiguration -AccessKey  -SecretKey 
+
+$logs=Get-CWLFilteredLogEvent -LogGroupName /aws/lambda/second
+$logs.events
+
+$payload=@{'Len'='30'}|convertto-json
+Invoke-LMFunction -Payload $payload -FunctionName second
