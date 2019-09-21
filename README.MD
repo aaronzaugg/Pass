@@ -1,0 +1,1 @@
+Third.ps1 contains variable list for AWS Lambda container

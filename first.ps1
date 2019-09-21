@@ -49,5 +49,5 @@ Function New-NewsPassword {
     else {
         $password
     }
- 
+ New-NewsPassword -length $LambdaInput.Length
 }
